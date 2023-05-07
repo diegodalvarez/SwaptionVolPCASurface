@@ -3,5 +3,6 @@ OOP Implementation
 Strealmit GUI
 KernelPCA, FastICA, 
 Singular Spectrum Analysis + Kernel PCA for Time Series Regression
+RobustPCA for Time Series Forecasting and Anomaly Detection
 Using simulated returns with MGARCH
 Using simulated returns with MGARCH PyMC3
