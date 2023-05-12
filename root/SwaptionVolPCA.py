@@ -13,11 +13,14 @@ import logging
 import pandas as pd
 import seaborn as sns
 import datetime as dt
+import plotly.express as px
 import matplotlib.pyplot as plt
 
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
+
+import streamlit as st
 
 class SwaptionVolPCA:
     
@@ -76,6 +79,15 @@ class SwaptionVolPCA:
              
         self._prep_data()
         self._make_pca()
+
+        self.tenor_join = pd.DataFrame({
+            "tenor_year": [5, 7, 1, 2, 10, 30],
+            "Swap Tenor Year": ["5y", "7y", "1y", "2y", "10y", "30y"]})
+        
+        self.expiry_join = pd.DataFrame({
+            "expiry_month": [120, 3, 12, 1, 60, 24],
+            "Option Expiry Month": ["10y", "3m", "1y", "1m", "5y", "2y"]})
+        
                 
     # looks for data returns bool, saves data as self.df if it can find it  
     def _locate_data(self) -> bool:
@@ -427,7 +439,7 @@ class SwaptionVolPCA:
         return residuals_df
     
     def get_resid_zscore(self) -> pd.DataFrame:
-        
+
         try:
             
             if self.verbose == True:
@@ -447,8 +459,7 @@ class SwaptionVolPCA:
                         drop_duplicates().
                         assign(ticker = lambda x: x.ticker.str.split(" ").str[0])),
                     how = "left",
-                    on = ["ticker"])
-                [["value", "tenor_year", "expiry_month"]].
+                    on = ["ticker"]).
                 pivot(index = "expiry_month", columns = "tenor_year", values = "value"))
             
             return z_score_out
@@ -485,7 +496,7 @@ class SwaptionVolPCA:
                     "expiry_month": "Option Expiry Month",
                     "tenor_year": "Swap Rate Tenor"}).
                 pivot(index = "Option Expiry Month", columns = "Swap Rate Tenor", values = "value"))
-            
+
             sns.heatmap(
                 data = recent_vols,
                 fmt = ".3g",
@@ -590,6 +601,128 @@ class SwaptionVolPCA:
                 
             else:
                 sys.exit()
+
+    def make_current_surface_plotly(self):
+
+        
+        max_date = self.df_prep.date.max()
+
+        current_grid = (self.df_prep.query(
+            "date == @max_date")
+            [["value", "tenor_year", "expiry_month"]].
+            merge(self.tenor_join, how = "inner", on = ["tenor_year"]).
+            merge(self.expiry_join, how = "inner", on = ["expiry_month"]).
+            drop(columns = ["tenor_year", "expiry_month"]).
+            pivot(index = "Option Expiry Month", columns = "Swap Tenor Year", values = "value")
+            [["1y", "2y", "5y", "7y", "10y", "30y"]].
+            T
+            [["1m", "3m", "1y", "2y", "5y", "10y"]].
+            T)
+        
+        fig = px.imshow(
+            current_grid,
+            text_auto = True,
+            aspect = "data",
+            color_continuous_scale = "Greens")
+        
+        return fig, max_date.date()
+    
+    def make_current_ratio_plotly(self):
+
+        lookback_date = self.df_prep.date.drop_duplicates().sort_values().iloc[-30]
+        max_date = self.df_prep.date.max()
+
+        max_date_vols = (self.df_prep.query(
+            "date == @max_date")
+            [["value", "tenor_year", "expiry_month"]].
+            rename(columns = {"value": "max_date"}))
+        
+        lookback_vols = (self.df_prep.query(
+            "date == @lookback_date")
+            [["value", "tenor_year", "expiry_month"]].
+            rename(columns = {"value": "lookback_date"}))
+        
+        df_merged = (max_date_vols.merge(
+            lookback_vols,
+            how = "inner",
+            on = ["tenor_year", "expiry_month"]).
+            assign(ratio = lambda x: x.max_date / x.lookback_date).
+            merge(self.tenor_join, how = "inner", on = ["tenor_year"]).
+            merge(self.expiry_join, how = "inner", on = ["expiry_month"])
+            [["ratio", "Swap Tenor Year", "Option Expiry Month"]].
+            pivot(index = "Option Expiry Month", columns = "Swap Tenor Year", values = "ratio")
+            [["1y", "2y", "5y", "7y", "10y", "30y"]].
+            T
+            [["1m", "3m", "1y", "2y", "5y", "10y"]].
+            T)
+        
+        fig = px.imshow(
+            df_merged,
+            text_auto = True,
+            aspect = "data",
+            color_continuous_scale = "Blues")
+        
+        return fig
+    
+    def make_current_difference_plotly(self):
+
+        lookback_date = self.df_prep.date.drop_duplicates().sort_values().iloc[-30]
+        max_date = self.df_prep.date.max()
+
+        max_date_vols = (self.df_prep.query(
+            "date == @max_date")
+            [["value", "tenor_year", "expiry_month"]].
+            rename(columns = {"value": "max_date"}))
+        
+        lookback_vols = (self.df_prep.query(
+            "date == @lookback_date")
+            [["value", "tenor_year", "expiry_month"]].
+            rename(columns = {"value": "lookback_date"}))
+        
+        df_merged = (max_date_vols.merge(
+            lookback_vols,
+            how = "inner",
+            on = ["tenor_year", "expiry_month"]).
+            assign(difference = lambda x: x.max_date - x.lookback_date).
+            merge(self.tenor_join, how = "inner", on = ["tenor_year"]).
+            merge(self.expiry_join, how = "inner", on = ["expiry_month"])
+            [["difference", "Swap Tenor Year", "Option Expiry Month"]].
+            pivot(index = "Option Expiry Month", columns = "Swap Tenor Year", values = "difference")
+            [["1y", "2y", "5y", "7y", "10y", "30y"]].
+            T
+            [["1m", "3m", "1y", "2y", "5y", "10y"]].
+            T)
+        
+        fig = px.imshow(
+            df_merged,
+            text_auto = True,
+            aspect = "data",
+            color_continuous_scale = "Oranges")
+        
+        return fig
+    
+    def make_pca_z_score_plotly(self):
+
+        z_score = self.get_resid_zscore()
+        z_score_out = (z_score.reset_index().melt(
+            id_vars = "expiry_month").
+            merge(self.tenor_join, how = "inner", on = ["tenor_year"]).
+            merge(self.expiry_join, how = "inner", on = ["expiry_month"])
+            [["Swap Tenor Year", "Option Expiry Month", "value"]].
+            pivot(index = "Option Expiry Month", columns = "Swap Tenor Year", values = "value")
+            [["1y", "2y", "5y", "7y", "10y", "30y"]].
+            T
+            [["1m", "3m", "1y", "2y", "5y", "10y"]].
+            T)
+        
+        fig = px.imshow(
+            z_score_out,
+            text_auto = True,
+            aspect = "date",
+            color_continuous_scale = "Reds")
+
+        return fig
+    
 
 '''
 if __name__ == "__main__":
