@@ -20,8 +20,6 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 
-import streamlit as st
-
 class SwaptionVolPCA:
     
     def __init__(
@@ -87,6 +85,44 @@ class SwaptionVolPCA:
         self.expiry_join = pd.DataFrame({
             "expiry_month": [120, 3, 12, 1, 60, 24],
             "Option Expiry Month": ["10y", "3m", "1y", "1m", "5y", "2y"]})
+        
+        self.column_renamer = {
+            "USSN011": "1y1y",
+            "USSN0110": "1y10y",
+            "USSN012": "1y2y",
+            "USSN0130": "1y30y",
+            "USSN015": "1y5y",
+            "USSN017": "1y7y",
+            "USSN021": "2y1y",
+            "USSN0210": "2y10y",
+            "USSN022": "2y2y",
+            "USSN0230": "2y30",
+            "USSN025": "2y5y",
+            "USSN027": "2y7y", 
+            "USSN051": "5y1y",
+            "USSN0510": "5y10y",
+            "USSN052": "5y2y", 
+            "USSN0530": "5y30y",
+            "USSN055": "5y5y",
+            "USSN057": "5y7y",
+            "USSN0A1": "1m1y", 
+            "USSN0A10": "1m10y",
+            "USSN0A2": "1m2y",
+            "USSN0A30": "1m30y",
+            "USSN0A5": "1m5y",
+            "USSN0A7": "1m7y",
+            "USSN0C1": "3m1y",
+            "USSN0C10": "3m10y",
+            "USSN0C2": "3m2y",
+            "USSN0C30": "3m30y",
+            "USSN0C5": "3m5y",
+            "USSN0C7": "3m7y",
+            "USSN101": "10y1y",
+            "USSN1010": "10y10y",
+            "USSN102": "10y2y",
+            "USSN1030": "10y30y",
+            "USSN105": "10y5y",
+            "USSN107": "10y7y"}
         
                 
     # looks for data returns bool, saves data as self.df if it can find it  
@@ -475,7 +511,45 @@ class SwaptionVolPCA:
                 
             else:
                 sys.exit()
-    
+
+    def _get_rolling_z_score(self, df: pd.DataFrame) -> pd.DataFrame:
+
+
+        return(df.assign(
+            roll_mean = lambda x: x.value.rolling(window = 30).mean(),
+            roll_std = lambda x: x.value.rolling(window = 30).std(),
+            z_score = lambda x: (x.value - x.roll_mean) / x.roll_std))
+
+    def get_rolling_z_score(self) -> pd.DataFrame:
+
+        try:
+
+            if self.verbose == True:
+                print("[INFO] Getting PCA Residuals Z-scores")
+            
+            if self.log_on == True:
+                logging.info("Getting PCA Residual Z-scores")
+
+            residuals = (self.get_resid().sort_index().reset_index().melt(
+                id_vars = "date").
+                groupby("ticker").
+                apply(self._get_rolling_z_score)
+                [["date", "ticker", "z_score"]].
+                dropna().
+                pivot(index = "date", columns = "ticker", values = "z_score").
+                rename(columns = self.column_renamer))
+            
+            return residuals
+
+        except:
+
+            if self.verbose == True:
+                sys.exit("[ALERT] There was a problem generating z-scores")
+
+            if self.log_on == True:
+                logging.error("Therew as a problem getting z-scores")
+                sys.exit()
+
     def plot_resid_zscore(self, figsize = (24,24), savefig = True) -> pd.DataFrame:
 
         try:        
