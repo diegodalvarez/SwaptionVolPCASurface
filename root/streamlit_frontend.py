@@ -81,7 +81,8 @@ if run_button == "On":
         label = "View",
         options = [
             "Volatility Surface", "Historical Z-Scores", "Historical PCs",
-            "Bar Chart Richness / Cheapness", "Bar Chart Change in Z-Score"])
+            "Bar Chart Richness / Cheapness", "Bar Chart Change in Z-Score",
+            "Historical PCs"])
     
     swaption_pca = SwaptionVolPCA(
         verbose = verbose,
@@ -313,4 +314,102 @@ if run_button == "On":
                     color_by = color_dict[color])
                 
                 st.write(rolling_z_score_change)
+                
+    if viewer_options == "Historical PCs":
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+        
+            plotting_options = st.sidebar.selectbox(
+                label = "Select Plotting Options",
+                options = ["Streamlit (Interactive)", "Matplotlib (JPEG)"])
+        
+        if plotting_options == "Matplotlib (JPEG)":
             
+            explained_variance = swaption_pca.get_pca_exp_variances()
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                
+                df_single = (explained_variance[
+                    ["single_component"]].
+                    rename(columns = {"single_component": "variance"}).
+                    assign(variance = lambda x: x.variance * 100))
+            
+                fig, axes = plt.subplots(figsize = (12,6))
+                (df_single.plot(
+                    ax = axes, kind = "bar",
+                    legend = False, title = "Single PC Explained Variance",
+                    ylabel = "Explained Variance (%)"))
+                
+                st.pyplot(fig)
+                
+                pcs = swaption_pca.get_pca_fit_transform()
+                fig, axes = plt.subplots(figsize = (16,6))
+                (pcs.plot(
+                    ax = axes, title = "Historical PCs from {} to {}".format(
+                        pcs.index.min().date(), pcs.index.max().date())))
+                
+                st.pyplot(fig)
+                
+            with col2:
+
+                df_single = (explained_variance[
+                    ["cum_component"]].
+                    rename(columns = {"cum_component": "variance"}).
+                    assign(variance = lambda x: x.variance * 100))
+            
+                fig, axes = plt.subplots(figsize = (12,6))
+                (df_single.plot(
+                    ax = axes, kind = "bar",
+                    legend = False, title = "Cumulative PC Explained Variance",
+                    ylabel = "Explained Variance (%)"))
+                
+                st.pyplot(fig)
+                
+                pcs_scaled = swaption_pca.get_pca_fit_transform_scale_plot(
+                    figsize = (16,6))
+                st.pyplot(pcs_scaled)
+            
+                
+        if plotting_options == "Streamlit (Interactive)":
+            
+            explained_variance = swaption_pca.get_pca_exp_variances()
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                
+                st.write("Single PC Explained Variance")
+                df_single = (explained_variance[
+                    ["single_component"]].
+                    rename(columns = {"single_component": "variance"}).
+                    assign(variance = lambda x: x.variance * 100))
+            
+                st.bar_chart(df_single)
+        
+                pcs = swaption_pca.get_pca_fit_transform()    
+                title = "Historical PCs from {} to {}".format(
+                    pcs.index.min().date(), pcs.index.max().date())
+                
+                st.write(title)
+                st.line_chart(pcs)
+                
+            with col2:
+
+                st.write("Cumulative PC Explained Variance")
+                df_cum = (explained_variance[
+                    ["cum_component"]].
+                    rename(columns = {"cum_component": "variance"}).
+                    assign(variance = lambda x: x.variance * 100))
+            
+                st.bar_chart(df_cum)
+                
+                pcs_scaled = swaption_pca.get_pca_fit_transform_scale()
+                title = "Historical PCs from {} to {} scaled by explained variance".format(
+                    pcs_scaled.index.min().date(), pcs_scaled.index.max().date())
+                
+                st.write(title)
+                st.line_chart(pcs_scaled)
+                
+                

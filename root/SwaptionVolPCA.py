@@ -354,7 +354,7 @@ class SwaptionVolPCA:
                 
             else:
                 sys.exit()
-        
+
     def get_pca_exp_variances(self) -> pd.DataFrame:
         
         try:
@@ -449,6 +449,45 @@ class SwaptionVolPCA:
             title = "Historical PCs for ATM Swaptions from {} to {} (Fitting to data already trained on)".format(
                 pcs.index.min().date(), pcs.index.max().date())))
         plt.tight_layout()
+        return fig
+    
+    def get_pca_fit_transform_scale(self) -> pd.DataFrame:
+
+        pcs = self.pca_raw_fit.transform(self.df_wider_raw_value)
+        pcs_prep = (pd.DataFrame(
+            pcs, columns = ["comp1", "comp2", "comp3"],
+            index = self.df_wider_raw_value.index).
+            reset_index().
+            melt(id_vars = "date").
+            rename(columns = {"variable": "comp"}))
+        
+        explained_variance = (self.get_pca_exp_variances()[
+            ["single_component"]].
+            reset_index().
+            rename(columns = {"index": "comp"}))
+
+        df_merged = (pcs_prep.merge(
+            explained_variance, how = "inner", on = ["comp"]).
+            assign(scaled_comp = lambda x: x.single_component * x.value)
+            [["date", "comp", "scaled_comp"]].
+            pivot(index = "date", columns = "comp", values = "scaled_comp").
+            rename(columns = {
+                "comp1": "PC1",
+                "comp2": "PC2",
+                "comp3": "PC3"}))
+
+        return df_merged
+    
+    def get_pca_fit_transform_scale_plot(self, figsize = (20,6)) -> plt.Figure:
+
+        pcs_scaled = self.get_pca_fit_transform_scale()
+        fig, axes = plt.subplots(figsize = figsize)
+
+        pcs_scaled.plot(
+            ax = axes,
+            title = "Historical PCs scaled by explained variance from {} to {}".format(
+            pcs_scaled.index.min().date(), pcs_scaled.index.max().date()))
+        
         return fig
     
     def get_resid(self) -> pd.DataFrame:
@@ -911,6 +950,9 @@ class SwaptionVolPCA:
 
         return fig
     
+    #def historical_pcs(self) -> pd.DataFrame:
+
+        
 
 '''
 if __name__ == "__main__":
