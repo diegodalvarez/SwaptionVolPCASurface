@@ -20,6 +20,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 
+import streamlit as st
+
 class SwaptionVolPCA:
     
     def __init__(
@@ -693,6 +695,8 @@ class SwaptionVolPCA:
             [["1m", "3m", "1y", "2y", "5y", "10y"]].
             T)
         
+        current_grid = round(current_grid, 2)
+        
         fig = px.imshow(
             current_grid,
             text_auto = True,
@@ -729,6 +733,8 @@ class SwaptionVolPCA:
             T
             [["1m", "3m", "1y", "2y", "5y", "10y"]].
             T)
+        
+        df_merged = round(df_merged, 2)
         
         fig = px.imshow(
             df_merged,
@@ -767,6 +773,8 @@ class SwaptionVolPCA:
             [["1m", "3m", "1y", "2y", "5y", "10y"]].
             T)
         
+        df_merged = round(df_merged, 2)
+        
         fig = px.imshow(
             df_merged,
             text_auto = True,
@@ -789,11 +797,117 @@ class SwaptionVolPCA:
             [["1m", "3m", "1y", "2y", "5y", "10y"]].
             T)
         
+        z_score_out = round(z_score_out, 2)
+        
         fig = px.imshow(
             z_score_out,
             text_auto = True,
             aspect = "date",
             color_continuous_scale = "Reds")
+
+        return fig
+    
+    def _make_z_score_bar_plot(self) -> pd.DataFrame:
+
+        z_score = (self.get_rolling_z_score().reset_index())
+        self.last_date = z_score.date.max().date()
+        
+        z_score_out = (z_score.query(
+            "date == date.max()").
+            drop(columns = ["date"]).
+            assign(col = "value").
+            set_index("col").
+            T.
+            sort_values("value"))
+        
+        return z_score_out
+    
+    def make_z_score_bar_plot(self, figsize = (12,6)) -> plt.Figure:
+
+        z_score = self._make_z_score_bar_plot()
+        fig, axes = plt.subplots(figsize = figsize)
+
+        colors = ["red" if i < 0 else "green" for i in z_score.value]
+
+        axes.bar(
+            x = z_score.index,
+            height = z_score.value,
+            color = colors)
+        
+        axes.set_title("Current PCA Residual Z-Score for ATM Swaption Straddles on {}".format(
+            self.last_date))
+
+        axes.set_ylabel("Z-Score")
+        plt.xticks(rotation = 45)
+        plt.tight_layout()
+
+        return fig
+    
+    def _make_z_score_change_plot(self, period = 1) -> pd.DataFrame:
+
+        z_score = (self.get_rolling_z_score().reset_index())
+        self.last_date = z_score.date.max().date()
+
+        first_val, second_val = len(z_score) - period - 1, len(z_score) - 1
+        print(first_val, second_val)
+
+        z_score_out = (z_score.reset_index().query(
+            "index == @first_val | index == @second_val").
+            sort_values("date").
+            drop(columns = ["index", "date"]).
+            pct_change().
+            dropna().
+            assign(col = "value").
+            set_index("col").
+            T.
+            sort_values("value"))
+        
+        return z_score_out
+    
+    def make_z_score_change_plot(
+            self, 
+            period: int,
+            color_by = "change",
+            figsize = (12,6)) -> plt.Figure:
+
+        if color_by != "z_score" and color_by != "change":
+            
+            print("You have to pass either z_score or change for coloring")
+            return -1
+
+        z_score = (self._make_z_score_change_plot(
+            period = period))
+        
+        if color_by == "change":
+            colors = ["red" if i < 0 else "green" for i in z_score.value]
+
+        if color_by == "z_score":
+            
+            z_score_value = (self.get_rolling_z_score().reset_index().query(
+                "date == date.max()").
+                drop(columns = ["date"]).
+                assign(z_score = "z_score").
+                set_index("z_score").
+                T)
+            
+            z_score_join = (z_score.reset_index().merge(
+                z_score_value, how = "inner", on = "ticker"))
+            
+            colors = ["red" if i < 0 else "green" for i in z_score_join.z_score]
+        
+        fig, axes = plt.subplots(figsize = figsize)
+        axes.bar(
+            x = z_score.index,
+            height = z_score.value,
+            color = colors)
+        
+        axes.set_ylabel("% Change in Z-Score")
+        axes.set_title("Change in Z-Score Residuals PCA for ATM Swaption Straddle for {}d period on {}".format(
+            period,
+            self.last_date))
+        
+        plt.xticks(rotation = 45)
+        plt.tight_layout()
 
         return fig
     

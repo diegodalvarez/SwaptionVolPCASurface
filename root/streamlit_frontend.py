@@ -79,7 +79,9 @@ if run_button == "On":
 
     viewer_options = st.sidebar.selectbox(
         label = "View",
-        options = ["Volatility Surface", "Historical Z-Scores", "Historical PCs"])
+        options = [
+            "Volatility Surface", "Historical Z-Scores", "Historical PCs",
+            "Bar Chart Richness / Cheapness", "Bar Chart Change in Z-Score"])
     
     swaption_pca = SwaptionVolPCA(
         verbose = verbose,
@@ -123,6 +125,10 @@ if run_button == "On":
                 
     if viewer_options == "Historical Z-Scores":
         
+        plot_type = st.sidebar.selectbox(
+            label = "Plotting Type",
+            options = ["Streamlit", "Matplotlib JPEG"])
+        
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -135,29 +141,55 @@ if run_button == "On":
         
             rolling_z_score = swaption_pca.get_rolling_z_score()
             col1, col2, col3 = st.columns(3)
+        
             
             for i, column in enumerate(rolling_z_score.columns):
                 
-                fig, axes = plt.subplots(figsize = (8,3))
+                if plot_type == "Matplotlib JPEG":
                 
-                (rolling_z_score[
-                    [column]].
-                    plot(
-                        ax = axes,
-                        legend = False,
-                        ylabel = "Z-Score",
-                        title = column + " ATM Swaption Straddle from {} to {}".format(
-                            rolling_z_score.index.min().date(), 
-                            rolling_z_score.index.max().date())))
-                
-                if i % 3 == 0: 
-                    with col1: st.pyplot(fig)
+                    fig, axes = plt.subplots(figsize = (8,3))
+            
+                    (rolling_z_score[
+                        [column]].
+                        plot(
+                            ax = axes,
+                            legend = False,
+                            ylabel = "Z-Score",
+                            title = column + " ATM Swaption Straddle from {} to {}".format(
+                                rolling_z_score.index.min().date(), 
+                                rolling_z_score.index.max().date())))
                     
-                if i % 3 == 1: 
-                    with col2: st.pyplot(fig)
+                    if i % 3 == 0: 
+                        with col1: st.pyplot(fig)
+                        
+                    if i % 3 == 1: 
+                        with col2: st.pyplot(fig)
+                        
+                    if i % 3 == 2:
+                        with col3: st.pyplot(fig)
+                        
+                if plot_type == "Streamlit":
                     
-                if i % 3 == 2:
-                    with col3: st.pyplot(fig)
+                    if i % 3 == 0:
+                    
+                        with col1: 
+                            
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(rolling_z_score[[column]])
+                    
+                    if i % 3 == 1:
+                        
+                        with col2:
+                            
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(rolling_z_score[[column]])
+                            
+                    if i % 3 == 2:
+                        
+                        with col3:
+                            
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(rolling_z_score[[column]])
                     
         if lookback_option == "Custom":
             
@@ -176,21 +208,109 @@ if run_button == "On":
                 
                 fig, axes = plt.subplots(figsize = (8,3))
                 
-                (rolling_z_score[
-                    [column]].
-                    plot(
-                        ax = axes,
-                        legend = False,
-                        ylabel = "Z-Score",
-                        title = column + " ATM Swaption Straddle from {} to {}".format(
-                            rolling_z_score.index.min().date(), 
-                            rolling_z_score.index.max().date())))
+                if plot_type == "Matplotlib JPEG":
                 
-                if i % 3 == 0: 
-                    with col1: st.pyplot(fig)
+                    (rolling_z_score[
+                        [column]].
+                        plot(
+                            ax = axes,
+                            legend = False,
+                            ylabel = "Z-Score",
+                            title = column + " ATM Swaption Straddle from {} to {}".format(
+                                rolling_z_score.index.min().date(), 
+                                rolling_z_score.index.max().date())))
                     
-                if i % 3 == 1: 
-                    with col2: st.pyplot(fig)
+                    if i % 3 == 0: 
+                        with col1: st.pyplot(fig)
+                        
+                    if i % 3 == 1: 
+                        with col2: st.pyplot(fig)
+                        
+                    if i % 3 == 2:
+                        with col3: st.pyplot(fig)
+                        
+                if plot_type == "Streamlit":
                     
-                if i % 3 == 2:
-                    with col3: st.pyplot(fig)
+                    if i % 3 == 0:
+                    
+                        with col1: 
+                            
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(rolling_z_score[[column]])
+                    
+                    if i % 3 == 1:
+                        
+                        with col2:
+                            
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(rolling_z_score[[column]])
+                            
+                    if i % 3 == 2:
+                        
+                        with col3:
+                            
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(rolling_z_score[[column]])
+                            
+    if viewer_options == "Bar Chart Richness / Cheapness":
+        
+        plotting_options = st.sidebar.selectbox(
+            label = "Plotting Option",
+            options = ["Matplotlib JPEG", "Streamlit"])
+        
+        if plotting_options == "Streamlit": 
+        
+            rolling_z_score = swaption_pca._make_z_score_bar_plot()
+            st.bar_chart(rolling_z_score)
+            
+        if plotting_options == "Matplotlib JPEG":
+            
+            st.pyplot(swaption_pca.make_z_score_bar_plot())
+            
+    if viewer_options == "Bar Chart Change in Z-Score":
+        
+        plotting_options = st.sidebar.selectbox(
+            label = "Plotting Option",
+            options = ["Matplotlib JPEG", "Streamlit"])
+        
+        if plotting_options == "Streamlit":
+            
+            rolling_z_score_change = swaption_pca._make_z_score_change_plot(
+                period = 1)
+            
+            st.write("1d Change")
+            st.bar_chart(rolling_z_score_change)
+            
+            rolling_z_score_change = swaption_pca._make_z_score_change_plot(
+                period = 5)
+            
+            st.write("5d Change (1wk)")
+            st.bar_chart(rolling_z_score_change)
+            
+            rolling_z_score_change = swaption_pca._make_z_score_change_plot(
+                period = 30)
+            
+            st.write("30d Change (1 month)")
+            st.bar_chart(rolling_z_score_change)
+            
+        if plotting_options == "Matplotlib JPEG":
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                
+                color = st.radio(
+                    label = "Select Coloring",
+                    options = ["By Change in Z Score", "By Z Score Value"])
+                
+                color_dict = {
+                    "By Change in Z Score": "change",
+                    "By Z Score Value": "z_score"}
+            
+            for i in [1, 5, 30]:
+            
+                rolling_z_score_change = swaption_pca.make_z_score_change_plot(
+                    period = i,
+                    color_by = color_dict[color])
+                
+                st.write(rolling_z_score_change)
+            
