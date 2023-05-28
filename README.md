@@ -5,6 +5,8 @@ This model looks at reducing the dimensionality of an ATM Swaption Surface IV (w
 2. Predic the values
 3. Get the Residuals of that model
 4. Calculate their z-score
+
+# Considerations
 A major consideration of this model which is why it is effective is that Currency swaptions are likely to have more symmetric smiles than equity options. Another way of thinking of this is that the implied distribution of currency options can be parametrized by fewer moments. Since PCA is looking to maximize variance (2nd moment) we can ensure that the distribution is being well-parametrized when using PCA. This is not always the case in equity markets since equity options tend to trade with skew, thus requiring a dimensionality reduction model that takes into account higher moments. Another consideration is htat although there is not skew within currency options there may be higher moments such as kurtosis. 
 
 # Getting the surface
