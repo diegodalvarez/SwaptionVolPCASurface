@@ -15,5 +15,5 @@ A major consideration of this model which is why it is effective is that Currenc
 ![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/9a173701-a213-47d9-a43e-6ecd3ef2935a)
 # Historical PCs
 ![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/d5f7d1b4-07e6-456a-aa5e-99b68a51de5b)
-Getting the residuals and rolling z-scores
+# Getting the residuals and rolling z-scores
 ![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/91cd5f37-c482-4eeb-b21d-f3546e6a51dd)
