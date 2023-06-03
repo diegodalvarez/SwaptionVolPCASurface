@@ -1,4 +1,10 @@
 # Not Intended as investment advice
+
+# Required Packages
+| Name         | Pacakage                                                                                                                        | File                                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Keras        | !![Pandas](https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)                   | All Files|
+
 # Swaption Volatility Surface PCA
 This model looks at reducing the dimensionality of an ATM Swaption Surface IV (which will be referred as IV Surface) via PCA. The overall goal of the model is to 
 1. Fit the PCA model
