@@ -34,7 +34,7 @@ except:
     TENOR_LIST = ["1", "2", "5", "7", "10", "30"]
     flds = ["PX_LAST"]
     
-    end_date = dt.date(year = 2023, month = 3, day = 31)
+    end_date = dt.date.today()
     start_date = dt.date(year = 2020, month = 1, day = 1)
     
     end_date_input  = end_date.strftime("%Y%m%d")

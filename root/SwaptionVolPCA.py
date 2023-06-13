@@ -34,6 +34,10 @@ class SwaptionVolPCA:
         self.out_path = os.path.join(self.parent_path, "out")
         self.file_path = os.path.join(self.data_path, "svols.parquet")
         
+        if os.path.exists(self.data_path) == False: os.makedirs(self.data_path)
+        if os.path.exists(self.out_path) == False: os.makedirs(self.out_path)
+        if os.path.exists(self.file_path) == False: os.makedirs(self.file_path)
+        
         self.today_date = dt.date.today()
         self.verbose = verbose
         self.log_on = log_on
@@ -58,7 +62,7 @@ class SwaptionVolPCA:
             if download == False:
                 
                 if self.verbose == True:
-                    sys.exit("[ALERT] Data not found and Download not enabled turning off")
+                    sys.exit("[ALERT] Data not found, run svols_pull.py from root directory")
                  
                 if self.verbose == False:
                     sys.exit()
@@ -126,14 +130,13 @@ class SwaptionVolPCA:
             "USSN105": "10y5y",
             "USSN107": "10y7y"}
         
-                
     # looks for data returns bool, saves data as self.df if it can find it  
     def _locate_data(self) -> bool:
         
         try:
             
             if self.verbose == True:
-                print("[INFO] Trying to locate Swaption Volatility Data")
+                st.write("[INFO] Trying to locate Swaption Volatility Data")
                 
             if self.log_on == True:
                 logging.info("Attempting to read data")
@@ -143,7 +146,7 @@ class SwaptionVolPCA:
                 engine = "pyarrow")
             
             if self.verbose == True:
-                print("[INFO] Swaption Volatility Data Found")
+                st.write("[INFO] Swaption Volatility Data Found")
                 
             if self.log_on == True:
                 logging.info("Data Found")
@@ -153,7 +156,7 @@ class SwaptionVolPCA:
         except:
             
             if self.verbose == True:
-                print("[ALERT] Swaption Volatility Data Not Found")
+                st.write("[ALERT] Swaption Volatility Data Not Found, select Download")
                 
             if self.log_on == True:
                 logging.error("Data Not Found")
@@ -234,6 +237,7 @@ class SwaptionVolPCA:
             
             if self._locate_data() == False:
                         
+                print("Collecting data")
                 self.df = (con.bdh(
                     tickers = security_list,
                     flds = flds,
@@ -244,6 +248,7 @@ class SwaptionVolPCA:
                 
             else:
                 
+                print("Collecting Data")
                 df_tmp = (con.bdh(
                     tickers = security_list,
                     flds = flds,
@@ -253,6 +258,8 @@ class SwaptionVolPCA:
                     melt(id_vars = "date"))
                 
                 self.df = pd.concat([self.df, df_tmp])
+                
+            con.stop()   
                 
             self.df = self.df.drop_duplicates()
                 

@@ -23,7 +23,7 @@ with col1:
     st.subheader("Data Options")
     download_button = st.radio(
         label = "Download Data (from Bloomberg Terminal if none is found)",
-        options = ["On", "Off"])
+        options = ["Off", "On"])
     
     if download_button == "Off": download_button = False
     else: download_button = True
@@ -51,8 +51,8 @@ with col3:
     st.subheader("Backend Options")
     
     verbose = st.radio(
-        label = "Output Logging to Console",
-        options = ["Off", "On"])
+        label = "Verbose",
+        options = ["On", "Off"])
     
     if verbose == "Off": verbose = False,
     else: verbose = True
