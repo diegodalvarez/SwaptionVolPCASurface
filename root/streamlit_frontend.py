@@ -80,14 +80,164 @@ if run_button == "On":
     viewer_options = st.sidebar.selectbox(
         label = "View",
         options = [
-            "Volatility Surface", "Historical Z-Scores", "Historical PCs",
-            "Bar Chart Richness / Cheapness", "Bar Chart Change in Z-Score"])
+            "Volatility Surface", "Historical Volatility", "Historical Z-Scores", 
+            "Historical PCs", "Bar Chart Richness / Cheapness", 
+            "Bar Chart Change in Z-Score"])
 
     swaption_pca = SwaptionVolPCA(
         verbose = verbose,
         log_on = logging,
         download = download_button,
         update_data = update_button)
+    
+    if viewer_options == "Historical Volatility":
+        
+        df_plot = (swaption_pca.df_prep.sort_values(["tenor_year", "expiry_month"]).
+            assign(name = lambda x: "Swap Year: " + x.tenor_year.astype(str) + ", Option Months: " + x.expiry_month.astype(str))
+            [["date", "name", "value"]].
+            pivot(index = "date", columns = "name", values = "value"))
+        
+        plot_type = st.sidebar.selectbox(
+            label = "Plot Options",
+            options = ["Streamlit (Interactive)", "Matplotlib (JPEG)"])
+    
+        col1, col2, col3 = st.columns(3)
+        
+        with col1: 
+            
+            lookback_option = st.selectbox(
+                label = "Lookback",
+                options = ["Historical", "Custom"])
+            
+        col1, col2, col3 = st.columns(3)
+        
+        if lookback_option == "Historical":
+        
+            for i, column in enumerate(df_plot.columns):
+                
+                if plot_type == "Matplotlib (JPEG)":
+    
+                    fig, axes = plt.subplots(figsize = (8,3))                
+                    title = "{} from {} to {}".format(
+                        column, 
+                        df_plot.index.min().date(), 
+                        df_plot.index.max().date())
+                    
+                    (df_plot[
+                        [column]].
+                        plot(
+                            ax = axes,
+                            legend = False,
+                            title = title,
+                            ylabel = "ATM Implied Volatility"))
+    
+                    if i % 3 == 0:
+                        with col1: st.pyplot(fig)
+    
+                    if i % 3 == 1:
+                        with col2: st.pyplot(fig)
+    
+                    if i % 3 == 2:
+                        with col3: st.pyplot(fig)
+    
+                if plot_type == "Streamlit (Interactive)":
+    
+                    if i % 3 == 0:
+    
+                        with col1:
+    
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(df_plot[
+                                [column]].
+                                rename(columns = {column: "Implied Volatility"}))
+    
+                    if i % 3 == 1:
+    
+                        with col2:
+    
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(df_plot[
+                                [column]].
+                                rename(columns = {column: "Implied Volatility"}))
+                            
+                    if i % 3 == 2:
+    
+                        with col3:
+    
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(df_plot[
+                                [column]].
+                                rename(columns = {column: "Implied Volatility"}))
+                            
+        if lookback_option == "Custom":
+            
+            col1, col2, col3 = st.columns(3)
+    
+            with col1:
+    
+                lookback_window = st.number_input(
+                    label = "Lookback Days",
+                    min_value = 30)
+                
+            
+            col1, col2, col3 = st.columns(3)
+            for i, column in enumerate(df_plot.columns):
+                
+                df_plot = df_plot.tail(lookback_window)
+                
+                if plot_type == "Matplotlib (JPEG)":
+    
+                    fig, axes = plt.subplots(figsize = (8,3))                
+                    title = "{} from {} to {}".format(
+                        column, 
+                        df_plot.index.min().date(), 
+                        df_plot.index.max().date())
+                    
+                    (df_plot[
+                        [column]].
+                        plot(
+                            ax = axes,
+                            legend = False,
+                            title = title,
+                            ylabel = "ATM Implied Volatility"))
+    
+                    if i % 3 == 0:
+                        with col1: st.pyplot(fig)
+    
+                    if i % 3 == 1:
+                        with col2: st.pyplot(fig)
+    
+                    if i % 3 == 2:
+                        with col3: st.pyplot(fig)
+    
+                if plot_type == "Streamlit (Interactive)":
+    
+                    if i % 3 == 0:
+    
+                        with col1:
+    
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(df_plot[
+                                [column]].
+                                rename(columns = {column: "Implied Volatility"}))
+    
+                    if i % 3 == 1:
+    
+                        with col2:
+    
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(df_plot[
+                                [column]].
+                                rename(columns = {column: "Implied Volatility"}))
+                            
+                    if i % 3 == 2:
+    
+                        with col3:
+    
+                            st.write(column + " ATM Swaption Straddle")
+                            st.line_chart(df_plot[
+                                [column]].
+                                rename(columns = {column: "Implied Volatility"}))
 
     if viewer_options == "Volatility Surface":
 
@@ -141,7 +291,6 @@ if run_button == "On":
 
             rolling_z_score = swaption_pca.get_rolling_z_score()
             col1, col2, col3 = st.columns(3)
-
 
             for i, column in enumerate(rolling_z_score.columns):
 

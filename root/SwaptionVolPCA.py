@@ -10,6 +10,7 @@ import sys
 import time
 import pdblp
 import logging
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import datetime as dt
@@ -68,6 +69,7 @@ class SwaptionVolPCA:
 
             if download == True:
                 self._download_swaption_bbg()
+                
 
         if (self.today_date - self.df.date.max().date()).days > 3:
 
@@ -80,6 +82,7 @@ class SwaptionVolPCA:
             if update_data == True:
                 self._download_swaption_bbg()
 
+        self.df = self._check_duplicates(self.df)
         self._prep_data()
         self._make_pca()
 
@@ -327,13 +330,46 @@ class SwaptionVolPCA:
 
             else:
                 sys.exit()
+                
+    def _check_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
+        
+        bad_dates = (df[[
+            "date", "ticker"]].
+            groupby("date").
+            agg("count").
+            sort_values("ticker").
+            query("ticker != 36").
+            assign(above_below = lambda x: np.where(x.ticker > 72, "below", "above")))
 
-    def _make_pca(self) -> None:
+        above, below = bad_dates.query("above_below == 'above'"), bad_dates.query("above_below == 'below'")
+
+        if len(above) > 0:
+            
+            bad_dates = above.index.to_list()
+            
+            df_new = (df.query(
+                "date == @bad_dates").
+                groupby(["date", "ticker"]).
+                agg("mean").
+                reset_index())
+            
+            df = pd.concat([
+                df.query("date != @bad_dates"),
+                df_new])
+            
+        if len(below) > 0:
+            
+            bad_dates = below.index.to_list()
+            df = df.query("date != @bad_dates")
+            
+        return df
+
+    def _make_pca(self) -> None:      
 
         try:
-
             date_max = self.df_prep.date.max()
             date_cutoff = dt.date(year = date_max.year - 2, month = date_max.month, day = date_max.day)
+            
             self.df_wider_raw_value = (self.df_prep.drop_duplicates().query(
                 "date >= @date_cutoff").
                 assign(ticker = lambda x: x.ticker.str.split(" ").str[0])
@@ -348,10 +384,13 @@ class SwaptionVolPCA:
 
             if self.log_on == True:
                 logging.info("Made PCA model")
+                
 
         except:
 
             if self.verbose == True:
+                
+                st.write("[ALERT] There was a problem making the PCA model")
                 sys.exit("[ALERT] There was a problem making the PCA model")
 
             if self.log_on == True:
