@@ -71,7 +71,7 @@ class SwaptionVolPCA:
                 self._download_swaption_bbg()
                 
 
-        if (self.today_date - self.df.date.max().date()).days > 3:
+        if (self.today_date - self.df.date.max().date()).days > 1:
 
             if self.verbose == True:
                 print("[ALERT] Data Needs to be updated")
