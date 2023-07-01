@@ -21,7 +21,9 @@ This model is going to decompose the swaption implied volatility surface. This s
 
 # Swaption Volatility Surface PCA
 ## Step 1: Fitting the volatility surface to PCA
-The volatility surface can be reduced to 3 principal components while maintaining a reasonable amount of explained variance. Below are the volatility 
+The volatility surface can be reduced to 3 principal components while maintaining a reasonable amount of explained variance. This is a well-known fact within PCA and curve-based trading, and lends itseful useful since the first 3 components have economical interprations. As per the surface at hand they easily reduce reduce to three components.
+![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/e6639ff9-4cc8-4bda-a0e8-6ed7199be7cd)
+Assuming that the surface trades arbitrage free and not accounting for liquidity it should be expected that the whole surface trades perfectly in-line with the curve.
 
 ## Step 2: Getting the fitted values and residuals
 
