@@ -23,11 +23,16 @@ This model is going to decompose the swaption implied volatility surface. This s
 ## Step 1: Fitting the volatility surface to PCA
 The volatility surface can be reduced to 3 principal components while maintaining a reasonable amount of explained variance. This is a well-known fact within PCA and curve-based trading, and lends itseful useful since the first 3 components have economical interprations. As per the surface at hand they easily reduce reduce to three components.
 ![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/e6639ff9-4cc8-4bda-a0e8-6ed7199be7cd)
-Assuming that the surface trades arbitrage free and not accounting for liquidity it should be expected that the whole surface trades perfectly in-line with the curve.
+Assuming that the surface trades arbitrage-free and not accounting for liquidity it should be expected that the whole surface trades perfectly in-line with their respective curves. With that in mind from the PCs shown below they can be inverted back to each tenor/expiry. 
+![historical_pc](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/9ac9e361-8e03-4b55-ab94-03aec4db9f2e)
 
 ## Step 2: Getting the fitted values and residuals
+Comparing the fitted values to the actual give the residuals. The residuals are measuring the difference between trading in-line perfectly with the curve and where the current volatility is at. Therefore using a simple rolling z-score can identify which residuals have been too cheap or too rich. See below the residuals for the 1y1y ATM Swaption.
+![residual_z_score](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/f4dea0df-e6d0-4fc5-9b7f-248c9375ca82)
 
-## Step 3: Finding the rolling z-scores
+## Step 3: Richness and Cheapness surface and considerations
+Getting the ending z-score values and then plotting them back into a surface shows which shows the heatmap below. 
+![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/530c322b-e361-4eea-8a05-bf5b0b21bcbd)
 
 # Deploying the model
 
