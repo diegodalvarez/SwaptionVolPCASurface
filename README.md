@@ -37,5 +37,14 @@ Getting the ending z-score values and then plotting them back into a surface sho
 # Deploying the model
 
 ## Streamlit deployment
+```sh
+# Git Install
+git clone https://github.com/diegodalvarez/SwaptionVolPCASurface
+```
 
+```sh
+# Then to run cd into the directory and use streamlit
+cd root
+streamlit run streamlit_frotend.py
+```
 ## Streamlit Options
