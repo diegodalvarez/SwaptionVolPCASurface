@@ -787,7 +787,7 @@ class SwaptionVolPCA:
             current_grid,
             text_auto = True,
             aspect = "data",
-            color_continuous_scale = "Greens")
+            color_continuous_scale = "RdYlGn")
 
         return fig, max_date.date()
 
@@ -826,7 +826,7 @@ class SwaptionVolPCA:
             df_merged,
             text_auto = True,
             aspect = "data",
-            color_continuous_scale = "Blues")
+            color_continuous_scale = "RdYlGn")
 
         return fig
 
@@ -865,7 +865,7 @@ class SwaptionVolPCA:
             df_merged,
             text_auto = True,
             aspect = "data",
-            color_continuous_scale = "Oranges")
+            color_continuous_scale = "RdYlGn")
 
         return fig
 
@@ -889,7 +889,7 @@ class SwaptionVolPCA:
             z_score_out,
             text_auto = True,
             aspect = "date",
-            color_continuous_scale = "Reds")
+            color_continuous_scale = "RdYlGn")
 
         return fig
 

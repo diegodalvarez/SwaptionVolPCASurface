@@ -5,9 +5,9 @@ Created on Sun May  7 19:24:11 2023
 @author: Diego
 """
 
+import altair as alt
 import streamlit as st
 from SwaptionVolPCA import *
-
 
 st.set_page_config(
     page_title = "Swaption IV Surface",
@@ -52,7 +52,7 @@ with col3:
 
     verbose = st.radio(
         label = "Verbose",
-        options = ["On", "Off"])
+        options = ["Off", "On"])
 
     if verbose == "Off": verbose = False,
     else: verbose = True
@@ -147,27 +147,63 @@ if run_button == "On":
                         with col1:
     
                             st.write(column + " ATM Swaption Straddle")
-                            st.line_chart(df_plot[
-                                [column]].
-                                rename(columns = {column: "Implied Volatility"}))
-    
+
+                            min_, max_ = df_plot[column].min(), df_plot[column].max()
+                            min_, max_ = min_ * 0.9, max_ * 1.1
+
+                            altair_chart = (alt.Chart(
+                                df_plot[[column]].reset_index().rename(
+                                    columns = {column: "Implied Volatility"})).
+                                mark_line().
+                                encode(
+                                    x = "date",
+                                    y = alt.Y(
+                                        "Implied Volatility", 
+                                        scale = alt.Scale(domain = [min_, max_]))))
+                            
+                            st.altair_chart(altair_chart, use_container_width = True)
+
                     if i % 3 == 1:
     
                         with col2:
     
                             st.write(column + " ATM Swaption Straddle")
-                            st.line_chart(df_plot[
-                                [column]].
-                                rename(columns = {column: "Implied Volatility"}))
+
+                            min_, max_ = df_plot[column].min(), df_plot[column].max()
+                            min_, max_ = min_ * 0.9, max_ * 1.1
+
+                            altair_chart = (alt.Chart(
+                                df_plot[[column]].reset_index().rename(
+                                    columns = {column: "Implied Volatility"})).
+                                mark_line().
+                                encode(
+                                    x = "date",
+                                    y = alt.Y(
+                                        "Implied Volatility", 
+                                        scale = alt.Scale(domain = [min_, max_]))))
+                            
+                            st.altair_chart(altair_chart, use_container_width = True)
                             
                     if i % 3 == 2:
     
                         with col3:
-    
+
                             st.write(column + " ATM Swaption Straddle")
-                            st.line_chart(df_plot[
-                                [column]].
-                                rename(columns = {column: "Implied Volatility"}))
+                            
+                            min_, max_ = df_plot[column].min(), df_plot[column].max()
+                            min_, max_ = min_ * 0.9, max_ * 1.1
+                            
+                            altair_chart = (alt.Chart(
+                                df_plot[[column]].reset_index().rename(
+                                    columns = {column: "Implied Volatility"})).
+                                mark_line().
+                                encode(
+                                    x = "date",
+                                    y = alt.Y(
+                                        "Implied Volatility", 
+                                        scale = alt.Scale(domain = [min_, max_]))))
+                            
+                            st.altair_chart(altair_chart, use_container_width = True)
                             
         if lookback_option == "Custom":
             
