@@ -47,5 +47,18 @@ The landing page shows four heatmaps.
 Using the selectbar on the left you can select historical volatilities and view any from the tenor. 
 
 # Historical Z-Scores
-![Uploading image.png…]()
+![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/f7ed378e-f227-4307-b549-375ff50e91b5)
 Using the selectbar on the left you can select historical z-scores to see which are trading rich or cheap
+
+# Historical PCs
+Using the selectbar on the left you can select historical PCs to see how the PCs have changed over time
+![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/bda5bf0e-9f46-43fa-9fed-c2f7d9d229e6)
+
+* The upper left shows the explained variance per each PC
+* The upper right shows the cumulative explained variance per each PC
+* The bottom left shows the historical PCs
+* The bottom right shows the historical PCs scaled by their explained variance
+
+# Barchart Richness and Cheapness
+![image](https://github.com/diegodalvarez/SwaptionVolPCASurface/assets/48641554/145d281c-86e5-4f55-a9d9-82a761a8e611)
+Selecting Barch Chart Richness / Cheapness shows the current z-scores from the PCA model and aligns them from cheapest to richess. 
