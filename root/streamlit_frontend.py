@@ -7,6 +7,8 @@ Created on Sun May  7 19:24:11 2023
 
 import altair as alt
 import streamlit as st
+
+from matplotlib.patches import Patch 
 from SwaptionVolPCA import *
 
 st.set_page_config(
@@ -251,29 +253,62 @@ if run_button == "On":
                     if i % 3 == 0:
     
                         with col1:
-    
+                            
+                            min_, max_ = df_plot[column].min(), df_plot[column].max()
+                            min_, max_ = min_ * 0.9, max_ * 1.1
+
+                            altair_chart = (alt.Chart(
+                                df_plot[[column]].reset_index().rename(
+                                    columns = {column: "Implied Volatility"})).
+                                mark_line().
+                                encode(
+                                    x = "date",
+                                    y = alt.Y(
+                                        "Implied Volatility", 
+                                        scale = alt.Scale(domain = [min_, max_]))))
+                            
                             st.write(column + " ATM Swaption Straddle")
-                            st.line_chart(df_plot[
-                                [column]].
-                                rename(columns = {column: "Implied Volatility"}))
+                            st.altair_chart(altair_chart, use_container_width = True)
     
                     if i % 3 == 1:
     
                         with col2:
     
+                            min_, max_ = df_plot[column].min(), df_plot[column].max()
+                            min_, max_ = min_ * 0.9, max_ * 1.1
+
+                            altair_chart = (alt.Chart(
+                                df_plot[[column]].reset_index().rename(
+                                    columns = {column: "Implied Volatility"})).
+                                mark_line().
+                                encode(
+                                    x = "date",
+                                    y = alt.Y(
+                                        "Implied Volatility", 
+                                        scale = alt.Scale(domain = [min_, max_]))))
+                            
                             st.write(column + " ATM Swaption Straddle")
-                            st.line_chart(df_plot[
-                                [column]].
-                                rename(columns = {column: "Implied Volatility"}))
+                            st.altair_chart(altair_chart, use_container_width = True)
                             
                     if i % 3 == 2:
     
                         with col3:
     
+                            min_, max_ = df_plot[column].min(), df_plot[column].max()
+                            min_, max_ = min_ * 0.9, max_ * 1.1
+
+                            altair_chart = (alt.Chart(
+                                df_plot[[column]].reset_index().rename(
+                                    columns = {column: "Implied Volatility"})).
+                                mark_line().
+                                encode(
+                                    x = "date",
+                                    y = alt.Y(
+                                        "Implied Volatility", 
+                                        scale = alt.Scale(domain = [min_, max_]))))
+                            
                             st.write(column + " ATM Swaption Straddle")
-                            st.line_chart(df_plot[
-                                [column]].
-                                rename(columns = {column: "Implied Volatility"}))
+                            st.altair_chart(altair_chart, use_container_width = True)
 
     if viewer_options == "Volatility Surface":
 
@@ -322,6 +357,12 @@ if run_button == "On":
             lookback_option = st.selectbox(
                 label = "Lookback",
                 options = ["Historical", "Custom"])
+            
+        with col2:
+            
+            color_radio = st.radio(
+                label = "Color",
+                options = ["On", "Off"])
 
         if lookback_option == "Historical":
 
@@ -339,10 +380,37 @@ if run_button == "On":
                         plot(
                             ax = axes,
                             legend = False,
+                            color = "black",
+                            linewidth = 0.8, 
                             ylabel = "Z-Score",
                             title = column + " ATM Swaption Straddle from {} to {}".format(
                                 rolling_z_score.index.min().date(),
                                 rolling_z_score.index.max().date())))
+                    
+                    if color_radio == "On":
+                    
+                        legend_elements = [
+                            Patch(facecolor = "green", alpha = 0.3, label = "Richness"),
+                            Patch(facecolor = "red", alpha = 0.3, label = "Cheapness")]
+                        
+                        axes.legend(handles = legend_elements)
+    
+                        
+                        axes.fill_between(
+                            x = rolling_z_score.index,
+                            y1 = rolling_z_score[column],
+                            y2 = 0,
+                            where = rolling_z_score[column] > 0,
+                            facecolor = "green",
+                            alpha = 0.3)
+                        
+                        axes.fill_between(
+                            x = rolling_z_score.index,
+                            y1 = rolling_z_score[column],
+                            y2 = 0,
+                            where = rolling_z_score[column] < 0,
+                            facecolor = "red",
+                            alpha = 0.3)
 
                     if i % 3 == 0:
                         with col1: st.pyplot(fig)
@@ -385,6 +453,12 @@ if run_button == "On":
                 lookback_window = st.number_input(
                     label = "Lookback Days",
                     min_value = 30)
+                
+            with col2:
+                
+                color_radio = st.radio(
+                    label = "Color",
+                    options = ["Off", "On"])
 
             rolling_z_score = swaption_pca.get_rolling_z_score().tail(lookback_window)
             col1, col2, col3 = st.columns(3)
@@ -401,9 +475,34 @@ if run_button == "On":
                             ax = axes,
                             legend = False,
                             ylabel = "Z-Score",
+                            color = "black",
                             title = column + " ATM Swaption Straddle from {} to {}".format(
                                 rolling_z_score.index.min().date(),
                                 rolling_z_score.index.max().date())))
+                    
+                    if color_radio == "On":
+                    
+                        axes.fill_between(
+                            x = rolling_z_score.index,
+                            y1 = rolling_z_score[column],
+                            y2 = 0,
+                            where = rolling_z_score[column] > 0,
+                            facecolor = "green",
+                            alpha = 0.3)
+                        
+                        axes.fill_between(
+                            x = rolling_z_score.index,
+                            y1 = rolling_z_score[column],
+                            y2 = 0,
+                            where = rolling_z_score[column] < 0,
+                            facecolor = "red",
+                            alpha = 0.3)
+                        
+                        legend_elements = [
+                            Patch(facecolor = "green", alpha = 0.3, label = "Richness"),
+                            Patch(facecolor = "red", alpha = 0.3, label = "Cheapness")]
+                        
+                        axes.legend(handles = legend_elements)
 
                     if i % 3 == 0:
                         with col1: st.pyplot(fig)
@@ -536,6 +635,44 @@ if run_button == "On":
                         pcs.index.min().date(), pcs.index.max().date())))
 
                 st.pyplot(fig)
+                
+                for pc in pcs.columns.to_list():
+                    
+                    fig, axes = plt.subplots(figsize = (12, 6))
+                    
+                    pc_tmp = pcs[[pc]]
+                    mean_ = pc_tmp.mean().values[0]
+                    median_ = pc_tmp.median().values[0]
+                    std_ = pc_tmp.std().values[0]
+                    skew_ = pc_tmp.skew().values[0]
+                    kurtosis_ = pc_tmp.kurtosis().values[0]
+                    
+                    (pc_tmp.plot(
+                        kind = "hist",
+                        ax = axes,
+                        legend = False,
+                        bins = int(len(pcs) / 10),
+                        xlabel = pc,
+                        alpha = 0.3,
+                        title = '''
+                Raw {} Value from {} to {} 
+                std: {} skew: {} kurtosis: {}'''.format(
+                            pc,
+                            pcs.index.min().date(),
+                            pcs.index.max().date(),
+                            round(std_, 2),
+                            round(skew_, 2),
+                            round(kurtosis_, 2))))
+                    
+                    axes.axvline(mean_, label = "Mean: {}".format(
+                        round(mean_, 2)))
+                    
+                    axes.axvline(median_, color = "r", label = "Median: {}".format(
+                        round(median_, 2)))
+                    
+                    axes.legend()
+                    
+                    st.pyplot(fig)
 
             with col2:
 
@@ -552,9 +689,49 @@ if run_button == "On":
 
                 st.pyplot(fig)
 
-                pcs_scaled = swaption_pca.get_pca_fit_transform_scale_plot(
+                pcs_scaled_plot = swaption_pca.get_pca_fit_transform_scale_plot(
                     figsize = (16,6))
-                st.pyplot(pcs_scaled)
+                st.pyplot(pcs_scaled_plot)
+                
+                pcs_scaled = swaption_pca.get_pca_fit_transform_scale()
+
+                for pc in pcs_scaled.columns.to_list():
+                    
+                    fig, axes = plt.subplots(figsize = (12, 6))
+                    
+                    pc_tmp = pcs_scaled[[pc]]
+                    mean_ = pc_tmp.mean().values[0]
+                    median_ = pc_tmp.median().values[0]
+                    std_ = pc_tmp.std().values[0]
+                    skew_ = pc_tmp.skew().values[0]
+                    kurtosis_ = pc_tmp.kurtosis().values[0]
+                    
+                    (pc_tmp.plot(
+                        kind = "hist",
+                        ax = axes,
+                        legend = False,
+                        bins = int(len(pcs) / 10),
+                        xlabel = pc,
+                        alpha = 0.3,
+                        title = '''
+                Raw Scaled {} Value from {} to {} 
+                std: {} skew: {} kurtosis: {}'''.format(
+                            pc,
+                            pcs.index.min().date(),
+                            pcs.index.max().date(),
+                            round(std_, 2),
+                            round(skew_, 2),
+                            round(kurtosis_, 2))))
+                    
+                    axes.axvline(mean_, label = "Mean: {}".format(
+                        round(mean_, 2)))
+                    
+                    axes.axvline(median_, color = "r", label = "Median: {}".format(
+                        round(median_, 2)))
+                    
+                    axes.legend()
+                    
+                    st.pyplot(fig)
 
 
         if plotting_options == "Streamlit (Interactive)":
@@ -595,3 +772,4 @@ if run_button == "On":
 
                 st.write(title)
                 st.line_chart(pcs_scaled)
+                
