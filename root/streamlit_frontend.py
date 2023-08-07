@@ -733,7 +733,6 @@ if run_button == "On":
                     
                     st.pyplot(fig)
 
-
         if plotting_options == "Streamlit (Interactive)":
 
             explained_variance = swaption_pca.get_pca_exp_variances()
@@ -755,7 +754,32 @@ if run_button == "On":
 
                 st.write(title)
                 st.line_chart(pcs)
-
+                
+                cols = pcs.columns.to_list()
+                for col in cols:
+                
+                    mean = pcs[col].mean()
+                    std = pcs[col].std()
+                    skew = pcs[col].skew()
+                    kurtosis = pcs[col].kurtosis()
+                    median = pcs[col].median()
+                
+                    fig_hist = px.histogram(pcs, x = col, nbins = int(len(pcs) / 10))
+                    fig_hist.add_vline(x = mean, annotation_text = "Mean")
+                    fig_hist.add_vline(
+                        x = median, 
+                        line_color = "red",
+                        annotation_text = "Median")
+                    
+                    st.subheader("{} Raw Value".format(col))
+                    st.write("Mean: {} Median: {} Std: {} Skew: {} Kurtosis: {}".format(
+                        round(mean, 2),
+                        round(median, 2),
+                        round(std, 2),
+                        round(skew, 2),
+                        round(kurtosis, 2)))
+                    st.plotly_chart(fig_hist)
+                    
             with col2:
 
                 st.write("Cumulative PC Explained Variance")
@@ -772,4 +796,37 @@ if run_button == "On":
 
                 st.write(title)
                 st.line_chart(pcs_scaled)
+                
+                cols = pcs_scaled.columns.to_list()
+                for col in cols:
+                
+                    mean = pcs_scaled[col].mean()
+                    std = pcs_scaled[col].std()
+                    skew = pcs_scaled[col].skew()
+                    kurtosis = pcs_scaled[col].kurtosis()
+                    median = pcs_scaled[col].median()
+                
+                    fig_hist = px.histogram(
+                        pcs_scaled, 
+                        x = col, 
+                        nbins = int(len(pcs_scaled) / 10))
+                    
+                    fig_hist.add_vline(
+                        x = mean,
+                        annotation_text = "Mean")
+                    fig_hist.add_vline(
+                        x = median, 
+                        line_color = "red",
+                        annotation_text = "Median")
+                    
+                    st.subheader("{} Raw Value Scaled by Explained Variance".format(col))
+                    st.write("Mean: {} Median: {} Std: {} Skew: {} Kurtosis: {}".format(
+                        round(mean, 2),
+                        round(median, 2),
+                        round(std, 2),
+                        round(skew, 2),
+                        round(kurtosis, 2)))
+                    st.plotly_chart(fig_hist)
+                    
+                    
                 
